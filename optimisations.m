@@ -23,9 +23,12 @@ weights2 = rand(true_output, hidden + 1);
 weights = [weights1(:) ; weights2(:)];
 
 %feed forward
-
-for i = 1:500
-
+grad = 0
+grad_1 = 0 
+step_1 = 0
+e = 10^-6
+flag = 1;
+for i=1:300
 weights1 = reshape(weights(1:hidden * (input + 1)), hidden, (input + 1));
 
 weights2 = reshape(weights((1 + (hidden * (input + 1))):end), true_output, (hidden + 1));
@@ -58,10 +61,27 @@ grad2 = error3' * act2;
 predictions1_grad = grad1 ./ m;
 predictions2_grad = grad2 ./ m ;
 
-grad = [predictions1_grad(:) ; predictions2_grad(:)];
+grad= [predictions1_grad(:) ; predictions2_grad(:)];
 
-weights = weights - 3 .* grad;
+l= 10;
+e = 10^-4;
 
+norm(grad);
+if  i == 1
+    grad_1 = grad;
+    weights = weights - l * grad;
+    step_1 = -grad;
+else
+    si = -grad + norm(grad)^2 *step_1 / norm(grad_1)^2 ;
+    weights = weights + si/i;
+    step_1 = si;
+    grad_1 = grad;
+
+end
+
+if norm(grad) < e 
+    break
+end
 end
 
 m = size(X, 1);
@@ -72,4 +92,5 @@ act2 = [ones(size(val2, 1), 1) sigmoid(val2)];
 val3 = act2 * weights2';
 prediction = sigmoid(val3);
 
-figure2; plot(prediction);
+hold on
+plot(prediction,'r');
